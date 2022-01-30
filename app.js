@@ -36,7 +36,7 @@ app.use("/api/v1/order", orderRouter);
 app.use(errorHandlerware);
 
 // Run Server only when connection with DB is Established
-const port = 3000;
+const port = 5000;
 const start = async () => {
   try {
     await connectDB(process.env.MONGO_URI);

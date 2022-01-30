@@ -1,11 +1,21 @@
 const asyncErrorWrapper = require("../middleware/catchAsyncErrors");
 const Product = require("../models/productSchema");
+const ApiFeatures = require("../utils/apiFeatures");
 const ErrorHandler = require("../utils/errohandler");
 
 const getAllProducts = asyncErrorWrapper(async (req, res) => {
   // empty object means no filter and get all the products
-  const products = await Product.find({});
-  res.status(200).json({ products: products });
+  const resultPerPage = 8;
+  const productCount = await Product.countDocuments();
+
+  const apiFeature = new ApiFeatures(Product.find(), req.query)
+    .search()
+    .filter()
+    .pagination(resultPerPage);
+
+  const products = await apiFeature.query;
+
+  res.status(200).json({ success: true, products, productCount });
 });
 
 const getProductDetails = asyncErrorWrapper(async (req, res, next) => {
