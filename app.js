@@ -3,6 +3,14 @@ const cors = require("cors");
 
 const express = require("express");
 const app = express();
+const cloudinary = require("cloudinary");
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+const fileupload = require("express-fileupload");
+
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 
@@ -20,6 +28,8 @@ NOTE----------------------
  */
 app.use(express.json());
 app.use(cookieParser());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(fileupload());
 app.use(cors());
 //app.use(bodyParser.json());
 

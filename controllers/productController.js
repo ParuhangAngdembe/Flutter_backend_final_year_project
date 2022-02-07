@@ -15,7 +15,9 @@ const getAllProducts = asyncErrorWrapper(async (req, res) => {
 
   const products = await apiFeature.query;
 
-  res.status(200).json({ success: true, products, productCount });
+  res
+    .status(200)
+    .json({ success: true, products, productCount, resultPerPage });
 });
 
 const getProductDetails = asyncErrorWrapper(async (req, res, next) => {
