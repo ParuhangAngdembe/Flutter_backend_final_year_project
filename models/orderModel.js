@@ -1,34 +1,12 @@
 const mongoose = require("mongoose");
 
 const OrderSchema = new mongoose.Schema({
-  shippingInfo: {
-    address: {
-      type: String,
-      required: true,
-    },
-    city: {
-      type: String,
-      required: true,
-    },
-    province: {
-      type: String,
-      required: true,
-    },
-    country: {
-      type: String,
-      required: true,
-    },
-    pinCode: {
-      type: Number,
-      required: true,
-    },
-    phoneNo: {
-      type: Number,
-      required: true,
-    },
-  },
-  orderItems: [
+  cartItems: [
     {
+      id: {
+        type: String,
+        required: true,
+      },
       name: {
         type: String,
         required: true,
@@ -37,14 +15,14 @@ const OrderSchema = new mongoose.Schema({
         type: Number,
         required: true,
       },
-      quantity: {
-        type: Number,
-        required: true,
-      },
-      image: {
+      images: {
         type: String,
         required: false,
       },
+    },
+  ],
+  productList: [
+    {
       product: {
         type: mongoose.Schema.ObjectId,
         ref: "Product",
@@ -57,43 +35,15 @@ const OrderSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
-  paymentInfo: {
-    id: {
-      type: String,
-      required: true,
-    },
-    status: {
-      type: String,
-      required: true,
-    },
-  },
-  paidAt: {
-    type: Date,
-    required: true,
-  },
-  itemsPrice: {
-    type: Number,
-    default: 0,
-    required: true,
-  },
-  taxPrice: {
-    type: Number,
-    default: 0,
-    required: true,
-  },
-  shippingPrice: {
-    type: Number,
-    default: 0,
-    required: true,
-  },
   totalPrice: {
     type: Number,
     default: 0,
-    required: true,
+    required: false,
   },
+
   orderStatus: {
     type: String,
-    required: true,
+
     default: "Processing",
   },
   createdAt: {

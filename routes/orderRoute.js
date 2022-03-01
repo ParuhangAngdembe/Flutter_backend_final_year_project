@@ -12,6 +12,7 @@ const { isUserAuthenticated, authorizedRoles } = require("../middleware/auth");
 
 // ROUTES
 router.route("/new").post(isUserAuthenticated, createOrder);
+// router.route("/new").post(createOrder);
 router
   .route("/:id")
   .get(isUserAuthenticated, authorizedRoles("admin"), getSingleOrder);

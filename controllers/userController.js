@@ -4,26 +4,25 @@ const User = require("../models/userModel");
 const sendToken = require("../utils/jwtToken");
 const sendEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
-const { find } = require("../models/userModel");
+// const { find } = require("../models/userModel");
 const cloudinary = require("cloudinary");
+const path = require("path");
+
 // Register a User
 const registerUser = asyncErrorWrapper(async (req, res, next) => {
-  //   res.send("register page");
-  const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
-    folder: "avatars",
-    width: 150,
-    crop: "scale",
-  });
-  const { username, email, password } = req.body;
+  // res.send("register page");
+  // const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
+  //   folder: "avatars",
+  //   width: 150,
+  //   crop: "scale",
+  // });
+  const { username, email, password, avatar } = req.body;
 
   const user = await User.create({
     username,
     email,
     password,
-    avatar: {
-      public_id: myCloud.public_id,
-      url: myCloud.secure_url,
-    },
+    avatar,
   });
 
   sendToken(user, 201, res);
@@ -83,11 +82,13 @@ const forgotPassword = asyncErrorWrapper(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   // const resetPasswordUrl = `http://localhost/api/v1/password/reset/${resetToken}`;
-  const resetPasswordUrl = `${req.protocol}://${req.get(
-    "host"
-  )}/api/v1/password/reset/${resetToken}`;
+  // const resetPasswordUrl = `${req.protocol}://${req.get(
+  //   "host"
+  // )}/api/v1/password/reset/${resetToken}`;
 
-  const message = `Your password reset token is \n ${resetPasswordUrl}.\n Please ignore if this wasn't you`;
+  const resetPasswordUrl = `${process.env.FRONTEND_URL}/password/reset/${resetToken}`;
+
+  const message = `Your password reset token is: \n ${resetPasswordUrl}.\n Please ignore if this wasn't you`;
 
   try {
     await sendEmail({
@@ -97,7 +98,6 @@ const forgotPassword = asyncErrorWrapper(async (req, res, next) => {
     });
     res.status(200).json({
       success: true,
-      message: `Email sent to ${user.email} successfully `,
     });
   } catch (error) {
     user.resetPasswordToken = undefined;
@@ -106,6 +106,9 @@ const forgotPassword = asyncErrorWrapper(async (req, res, next) => {
     // validateBeforeSave: true, esle chai hamro schema ma gaera sabaia validate garcha, 'false' garyo bhane chai tini haru herdaina cause hamlai password chage matrai garnnu parne ho. tesko lagi ni affnai arkai function cha, ani save garda password matrai save garnu parne ho.
     await user.save({ validateBeforeSave: false });
     return next(new ErrorHandler(error.message, 500));
+    // return res.status(404).json({
+    //   success: false,
+    // });
   }
 });
 
@@ -137,8 +140,11 @@ const resetPassword = asyncErrorWrapper(async (req, res, next) => {
   user.resetPasswordExpire = undefined;
 
   await user.save();
-  sendToken(user, 200, res);
   // Login after change password
+  // sendToken(user, 200, res);
+  res.status(200).json({
+    success: true,
+  });
 });
 
 // Update Password
@@ -166,7 +172,6 @@ const getUserDetails = asyncErrorWrapper(async (req, res, next) => {
   // auth.js -> if logged in user is saved in 'user'
   const user = await User.findById(req.user.id);
   res.status(200).json({
-    success: true,
     user,
   });
 });
@@ -178,6 +183,25 @@ const updateUserDetails = asyncErrorWrapper(async (req, res, next) => {
     email: req.body.email,
   };
 
+  // if (req.body.avatar !== "") {
+  //   const user = await User.findById(req.user.id);
+
+  //   const imageId = user.avatar.public_id;
+
+  //   await cloudinary.v2.uploader.destroy(imageId);
+
+  //   const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
+  //     folder: "avatars",
+  //     width: 150,
+  //     crop: "scale",
+  //   });
+
+  //   newUserData.avatar = {
+  //     public_id: myCloud.public_id,
+  //     url: myCloud.secure_url,
+  //   };
+  // }
+
   const user = await User.findByIdAndUpdate(req.user.id, newUserData, {
     new: true,
     runValidators: true,
@@ -186,6 +210,7 @@ const updateUserDetails = asyncErrorWrapper(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
+    user,
   });
 });
 
@@ -252,6 +277,54 @@ const deleteUser = asyncErrorWrapper(async (req, res, next) => {
   res.status(200).json({ success: true, message: "User Deleted Successfully" });
 });
 
+// Fullter Upload Image
+const photoUpload = asyncErrorWrapper(async (req, res, next) => {
+  // console.log(process.env.FILE_UPLOAD_PATH);
+  const user = await User.findById(req.params.id);
+  const file = req.files.file;
+
+  // console.log(user.username);
+  // console.log(user.id);
+  // console.log(file);
+
+  if (!user) {
+    return `No user found with ${req.params.id}`;
+  }
+
+  if (!file) {
+    return `Please upload a file`;
+  }
+
+  // Make sure the image is a photo and accept any extension of an image
+  // if (!file.mimetype.startsWith("image")) {
+  //   return next(new ErrorResponse(`Please upload an image`, 400));
+  // }
+
+  // Check file size
+  if (file.size > process.env.MAX_FILE_UPLOAD) {
+    return `Please upload an image less than ${process.env.MAX_FILE_UPLOAD}`;
+  }
+
+  file.name = `photo_${user.id}${path.parse(file.name).ext}`;
+  console.log(file.name);
+
+  file.mv(`${process.env.FILE_UPLOAD_PATH}/${file.name}`, async (err) => {
+    if (err) {
+      //console.err(err);
+      return next(new ErrorResponse(`Problem with file upload`, 500));
+    }
+
+    //insert the filename into database
+    await User.findByIdAndUpdate(req.params.id, {
+      avatar: file.name,
+    });
+  });
+
+  res.status(200).json({
+    success: true,
+    data: file.name,
+  });
+});
 module.exports = {
   registerUser,
   loginUser,
@@ -265,4 +338,5 @@ module.exports = {
   getSingleUser,
   updateUserRole,
   deleteUser,
+  photoUpload,
 };

@@ -4,14 +4,17 @@ const User = require("../models/userModel");
 
 const isUserAuthenticated = async (req, res, next) => {
   // cookie-parser parses Cookie header and populates req.cookies with an object keyed by the cookie names.
-  const { token } = req.cookies;
-  //   console.log(token);
+  const token = req.headers;
+  const { authorization } = token;
+
+  // console.log(authorization);
   //   return "abcd";
 
   if (!token) {
     return next(new ErrorHandler("Please Login to access this resource", 401));
   }
-  const decodeData = jwt.verify(token, process.env.JWT_SECRET);
+  const decodeData = jwt.verify(authorization, process.env.JWT_SECRET);
+  // console.log(decodeData);
 
   // as long as the user is authenticated we can access 'request' user data
   // findById because the token was made by signing the id ....

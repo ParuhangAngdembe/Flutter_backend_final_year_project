@@ -5,28 +5,32 @@ const asyncErrorWrapper = require("../middleware/catchAsyncErrors");
 
 // Create New Order
 const createOrder = asyncErrorWrapper(async (req, res, next) => {
-  const {
-    shippingInfo,
-    orderItems,
-    paymentInfo,
-    itemsPrice,
-    taxPrice,
-    shippingprice,
-    totalPrice,
-  } = req.body;
+  console.log(req.body);
+  const { cartItems, totalPrice } = req.body;
+  // console.log( req.body);
+  // var deco = jsonDecode(cartItems);
+  // console.log(deco);
+
+  // console.log(`order length: ${orderItems.length}, orderitems: ${orderItems}`);
+
+  var productList = [];
+  for (var i = 0; i < cartItems.length; i++) {
+    var productId = cartItems[i].id;
+    //  console.log(cartItems[i].name);
+    var product = await Product.findById({ _id: productId });
+    // console.log(product);
+    productList.push({ product: product });
+  }
+  // console.log(productList);
 
   const order = await Order.create({
-    shippingInfo,
-    orderItems,
-    paymentInfo,
-    itemsPrice,
-    taxPrice,
-    shippingprice,
+    cartItems,
     totalPrice,
+    productList,
     paidAt: Date.now(),
     user: req.user._id,
   });
-
+  // console.log(order);
   res.status(201).json({
     success: true,
     order,

@@ -15,22 +15,20 @@ const ProductSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please enter Descriptioin"],
   },
-  ratings: {
-    type: Number,
-    default: 0,
-  },
-  images: [
-    {
-      public_id: {
-        type: String,
-        required: true,
-      },
-      url: {
-        type: String,
-        required: true,
-      },
-    },
-  ],
+
+  images: { type: String },
+  // images: [
+  //   {
+  //     public_id: {
+  //       type: String,
+  //       required: true,
+  //     },
+  //     url: {
+  //       type: String,
+  //       required: true,
+  //     },
+  //   },
+  // ],
   category: {
     type: String,
     required: [true, "enter category"],
@@ -40,30 +38,7 @@ const ProductSchema = new mongoose.Schema({
     required: [true, "enter stock"],
     maxlength: [4, "Stock cannot exceed 4 digit"],
   },
-  noOfReviews: {
-    type: Number,
-    default: 0,
-  },
-  reviews: [
-    {
-      name: {
-        type: String,
-        required: true,
-      },
-      rating: {
-        type: Number,
-        required: true,
-      },
-      comment: {
-        type: String,
-      },
-      user: {
-        type: mongoose.Schema.ObjectId,
-        ref: "User",
-        required: true,
-      },
-    },
-  ],
+
   // Needed to see who made the product
   user: {
     type: mongoose.Schema.ObjectId,

@@ -1,4 +1,5 @@
 require("dotenv").config();
+
 const cors = require("cors");
 
 const express = require("express");
@@ -28,10 +29,16 @@ NOTE----------------------
  */
 app.use(express.json());
 app.use(cookieParser());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(
+  bodyParser.urlencoded({
+    limit: "50mb",
+    extended: true,
+    parameterLimit: 50000,
+  })
+);
 app.use(fileupload());
 app.use(cors());
-//app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: "50mb" }));
 
 //ROUTES
 app.get("/", (req, res) => {

@@ -2,22 +2,21 @@ const asyncErrorWrapper = require("../middleware/catchAsyncErrors");
 const Product = require("../models/productSchema");
 const ApiFeatures = require("../utils/apiFeatures");
 const ErrorHandler = require("../utils/errohandler");
+const cloudinary = require("cloudinary");
 
 const getAllProducts = asyncErrorWrapper(async (req, res) => {
   // empty object means no filter and get all the products
-  const resultPerPage = 8;
-  const productCount = await Product.countDocuments();
+  // const resultPerPage = 8;
+  // const productCount = await Product.countDocuments();
 
-  const apiFeature = new ApiFeatures(Product.find(), req.query)
-    .search()
-    .filter()
-    .pagination(resultPerPage);
+  // const apiFeature = new ApiFeatures(Product.find(), req.query)
+  //   .search()
+  //   .filter()
+  //   .pagination(resultPerPage);
 
-  const products = await apiFeature.query;
+  const products = await Product.find();
 
-  res
-    .status(200)
-    .json({ success: true, products, productCount, resultPerPage });
+  res.status(200).json({ products });
 });
 
 const getProductDetails = asyncErrorWrapper(async (req, res, next) => {
@@ -35,9 +34,36 @@ const getProductDetails = asyncErrorWrapper(async (req, res, next) => {
 });
 
 const createProducts = asyncErrorWrapper(async (req, res) => {
+  // let images = [];
+
+  // if (typeof req.body.images === "string") {
+  //   images.push(req.body.images);
+  // } else {
+  //   images = req.body.images;
+  // }
+
+  // const imagesLinks = [];
+
+  // for (let i = 0; i < images.length; i++) {
+  //   const result = await cloudinary.v2.uploader.upload(images[i], {
+  //     folder: "products",
+  //   });
+
+  //   imagesLinks.push({
+  //     public_id: result.public_id,
+  //     url: result.secure_url,
+  //   });
+  // }
+
+  // req.body.images = imagesLinks;
   req.body.user = req.user.id;
+
   const product = await Product.create(req.body);
-  res.status(200).json({ product });
+
+  res.status(201).json({
+    success: true,
+    product,
+  });
 });
 
 const updateProducts = asyncErrorWrapper(async (req, res, next) => {
@@ -164,6 +190,13 @@ const deleteReview = asyncErrorWrapper(async (req, res, next) => {
   });
 });
 
+// GetAllProductsAdmin
+const getAdminProducts = asyncErrorWrapper(async (req, res) => {
+  const products = await Product.find();
+
+  res.status(200).json({ success: true, products });
+});
+
 module.exports = {
   getAllProducts,
   getProductDetails,
@@ -173,4 +206,5 @@ module.exports = {
   getProductReviews,
   createProductReview,
   deleteReview,
+  getAdminProducts,
 };
